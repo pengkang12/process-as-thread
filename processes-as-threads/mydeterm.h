@@ -80,6 +80,10 @@ private:
   	volatile bool _childregistered;
   	volatile bool _parentnotified;
 
+	pthread_cond_t _cond_children;
+	pthread_cond_t _cond_parent;
+	pthread_cond_t _cond_join;
+
 	// All threads should be putted into this active list.
 	// Here, header is not one node in the circular link list.
 	// _activelist->next is the first node in the link list, while _activelist->prev is
@@ -124,7 +128,18 @@ public:
 			//Does this situation exist?
       		fprintf(stderr, "cores number is not correct. Exit now.\n");
       		exit(-1);
-    	}		
+    	}
+		
+		WRAP(pthread_mutexattr_init)(&_mutexattr);
+		pthread_mutexattr_setpshared(&_mutexattr, PTHREAD_PROCESS_SHARED);
+		WRAP(pthread_condattr_init)(&_condattr);
+		pthread_condattr_setpshared(&_condattr, PTHREAD_PROCESS_SHARED);	
+	
+		WRAP(pthread_mutex_init)(&_mutex, &_mutexattr);
+		WRAP(pthread_cond_init)(&cond, &_condattr);
+		WRAP(pthread_cond_init)(&_cond_parent, &_condattr);
+		WRAP(pthread_cond_init)(&_cond_children, &_condattr);
+		WRAP(pthread_cond_init)(&_cond_join, &_condattr);
 	}
 	
 	static mydeterm& getInstance(void) {
