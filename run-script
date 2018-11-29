@@ -1,0 +1,18 @@
+#!/bin/bash
+cd ~/project/cs5523project/project1/processes-as-threads/
+make clean 
+make
+
+cd ../test/
+make clean
+make
+
+./bug-atom-det
+./bug-deadlock1-det
+#./bug-deadlock-det
+#./bug-lockuse-det
+#./bug-order-det
+#./bug-race-det
+./lock-dthread
+./bug-init
+./test	
