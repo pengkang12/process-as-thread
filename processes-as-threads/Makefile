@@ -34,8 +34,8 @@ INCS =  $(INCLUDE_DIR)/xdefines.h     \
 INCLUDE_DIRS = -I$(INCLUDE_DIR) -I$(INCLUDE_DIR)/heaplayers -I$(INCLUDE_DIR)/heaplayers/util
 DEPS = $(SRCS) $(INCS)
 
-CXX = g++ -g -O2 -DEBUG
-
+CXX = g++ -g -O0 -DEBUG
+# O2
 # Detection on 32bit
 # CXX = g++ -DSSE_SUPPORT -m32 -DX86_32BIT -O3 -fno-omit-frame-pointer -DDETECT_FALSE_SHARING
 # Detection on 64bit

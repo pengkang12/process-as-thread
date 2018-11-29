@@ -76,7 +76,7 @@ public:
 	}
 
 	void initialize() {
-		installSignalHandler();
+		//installSignalHandler();
 		// Initialize the heap and globals. Basically, we need 
 		// spaces to hold access data for both heap and globals.
 		_heap.initialize(USER_HEAP_SIZE);
