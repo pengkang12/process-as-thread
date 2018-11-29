@@ -105,12 +105,14 @@ public:
 		mydeterm::getInstance().cond_destroy(cond);
 	}
 	static void cond_wait(void *cond, void *lock){
-
+		mydeterm::getInstance().cond_wait(_thread_index, cond, lock);
 	}
 
 	static void cond_broadcast(void *cond){
+		mydeterm::getInstance().cond_broadcast(cond);
 	}
 	static void cond_signal(void *cond){
+		mydeterm::getInstance().cond_signal(cond);
 	}
 
 	static int barrier_init(pthread_barrier_t *barrier, unsigned int count){
@@ -122,7 +124,7 @@ public:
 	}
 	
 	static int barrier_wait(pthread_barrier_t *barrier) {
-		
+		mydeterm::getInstance().barrier_wait(barrier, _thread_index);
 	}
 
 	static void atomicBegin(bool cleanup){

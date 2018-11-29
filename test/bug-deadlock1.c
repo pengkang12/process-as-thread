@@ -17,7 +17,7 @@ void * thread_a(void * para)
 {
 	int i = 0;
 	srandom(time(0L));
-
+	printf("\nthread a\n");
 	while(i < 100)
 	{
 		i++;
@@ -35,7 +35,7 @@ void * thread_a(void * para)
 		pthread_mutex_unlock(&lock_A);
 		usleep(random()%100);
 	}
-	printf("THREADA A:%d, B:%d\n", A, B);
+	printf("\nTHREADA A:%d, B:%d\n", A, B);
 	return 0L;
 }
 
@@ -43,6 +43,7 @@ void * thread_a(void * para)
 
 void * thread_b(void * para)
 {
+	printf("thread b\n");
 	int i = 0;
 	srandom(time(0L));
 	while(i < 100)
@@ -62,7 +63,7 @@ void * thread_b(void * para)
 		pthread_mutex_unlock(&lock_B);
 		usleep(random()%100);
 	}
-	printf("THREADB A:%d, B:%d\n", A, B);
+	printf("\nTHREADB A:%d, B:%d\n", A, B);
 	return 0L;
 }
 

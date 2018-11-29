@@ -1,5 +1,5 @@
 LIBS = -lm -lrt -ldl
-CFLAGS = -Wall -g -O3 # -T../src/dthreads.ld
+CFLAGS = -Wall -g -O0 # -T../src/dthreads.ld
 DTHREAD_LIBS = $(LIBS) -rdynamic ../processes-as-threads/libdthread.so
 PTHREAD_LIBS = $(LIBS) -lpthread
 
@@ -21,3 +21,6 @@ all:
 	g++ $(CFLAGS) -o bug-init bug-init-32bit.c $(DTHREAD_LIBS) 
 	g++ $(CFLAGS) -o test test.cpp $(DTHREAD_LIBS) 
 
+
+clean:
+	rm -f dthread* Heap*

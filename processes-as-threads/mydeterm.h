@@ -151,8 +151,8 @@ public:
     	return * determObject;
   	}
 	void finalize(void) {
-	    //WRAP(pthread_mutex_destroy)(&_mutex);
-    	//WRAP(pthread_cond_destroy)(&cond);
+	    WRAP(pthread_mutex_destroy)(&_mutex);
+    	WRAP(pthread_cond_destroy)(&cond);
     	assert(_currthreads == 0);
  	 }
 
@@ -218,7 +218,8 @@ public:
 	inline void notifyWaitingParent(void){
 		lock();
 		_childregistered = true;
-
+		//WRAP(pthread_cond_signal)(&_cond_parent);
+		//WRAP(pthread_cond_wait)(&_cond_children, &_mutex);
 		unlock();
 	}
 
@@ -318,6 +319,17 @@ public:
 		_barriernum--;
 	}
 	
+	void barrier_wait(void *bar, int threadindex){
+	}
+
+	void cond_wait(int threadindex, void *cond, void *thelock){
+	}
+	
+	void cond_broadcast(void *cond){
+	}
+	
+	void cond_signal(void * cond){
+	}
 private:
 
 	//we can optimaze this. Create a pool to manage ThreadEntry.

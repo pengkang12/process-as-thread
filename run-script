@@ -1,5 +1,5 @@
 #!/bin/bash
-cd ~/project/cs5523project/project1/processes-as-threads/
+cd ~/project1/processes-as-threads/
 make clean 
 make
 
@@ -16,3 +16,5 @@ make
 ./lock-dthread
 ./bug-init
 ./test	
+
+make clean
