@@ -19,7 +19,7 @@ __attribute__((constructor)) void initialize() {
 	
 	initialized = true;
 	
-	printf("this is my first time print\n");
+	//printf("this is my first time print\n");
 }
 
 void finalize(){
@@ -31,13 +31,14 @@ int pthread_create (pthread_t * tid, const pthread_attr_t * attr, void *(*fn) (v
 	if(initialized) {
 		*tid = (pthread_t)myrun::spawn(fn, arg);	
 	}
-	printf("haha, this is my first step\n");
+	//printf("haha, this is my first step\n");
 	return 0;
 }
 
 int pthread_join(pthread_t tid, void ** val) {
 	//assert(initialized);
 	if(initialized) {
+		myrun::join((void*)tid, val);
 	}
 	return 0;
 }
@@ -136,6 +137,7 @@ int pthread_attr_setstacksize(pthread_attr_t *, size_t) {
 int pthread_cond_init(pthread_cond_t * cond, const pthread_condattr_t *attr) {
 	//assert(initialized);
 	if(initialized) {
+		myrun::cond_init((void*) cond);
 	}
 	return 0;
 }
@@ -143,6 +145,7 @@ int pthread_cond_init(pthread_cond_t * cond, const pthread_condattr_t *attr) {
 int pthread_cond_broadcast(pthread_cond_t * cond) {
 	//assert(initialized);
 	if(initialized) {
+		myrun::cond_broadcast((void*) cond);	
 	}
 	return 0;
 }
@@ -150,6 +153,7 @@ int pthread_cond_broadcast(pthread_cond_t * cond) {
 int pthread_cond_signal(pthread_cond_t * cond) {
 	//assert(initialized);
 	if(initialized) {
+		myrun::cond_signal((void *)cond);
 	}
 	return 0;
 }
@@ -157,6 +161,7 @@ int pthread_cond_signal(pthread_cond_t * cond) {
 int pthread_cond_wait(pthread_cond_t * cond, pthread_mutex_t * mutex) {
 	//assert(initialized);
 	if(initialized) {
+		myrun::cond_wait((void *)cond, (void*)mutex);
 	}
 	return 0;
 }
@@ -164,6 +169,7 @@ int pthread_cond_wait(pthread_cond_t * cond, pthread_mutex_t * mutex) {
 int pthread_cond_destroy(pthread_cond_t * cond) {
 	//assert(initialized);
 	if(initialized) {
+		myrun::cond_destroy(cond);
 	}
 	return 0;
 }
@@ -172,6 +178,7 @@ int pthread_cond_destroy(pthread_cond_t * cond) {
 int pthread_barrier_init(pthread_barrier_t *barrier, const pthread_barrierattr_t * attr, unsigned int count) {
 	//assert(initialized);
 	if(initialized) {
+		myrun::barrier_init(barrier, count);
 	}
 	return 0;
 }
@@ -179,6 +186,7 @@ int pthread_barrier_init(pthread_barrier_t *barrier, const pthread_barrierattr_t
 int pthread_barrier_destroy(pthread_barrier_t *barrier) {
 	//assert(initialized);
 	if(initialized) {
+		myrun::barrier_destroy(barrier);
 	}
 	return 0;
 }
@@ -186,6 +194,7 @@ int pthread_barrier_destroy(pthread_barrier_t *barrier) {
 int pthread_barrier_wait(pthread_barrier_t *barrier) {
 	//assert(initialized);
 	if(initialized) {
+		myrun::barrier_wait(barrier);
 	}
 	return 0;
 }

@@ -54,6 +54,27 @@ private:
 		volatile int lock_budget;
 	};
 	
+	class CondEntry{
+	public:
+		size_t waiters;
+		void *cond;
+		pthread_cond_t realcond;
+		list_t *head;
+	};
+	class BarrierEntry{
+	public:
+		volatile size_t maxthreads;
+		volatile size_t threads;
+		volatile bool arrival_phase;
+		void *orig_barr;
+		pthread_barrier_t real_barr;
+		list_t *head;
+	};
+	pthread_mutex_t _mutex;
+	pthread_cond_t cond;
+	pthread_condattr_t _condattr;
+	pthread_mutexattr_t _mutexattr;
+	
 	// When one thread is created, it will wait until all threads are created.
   	// The following two flag are used to indentify whether one thread can move on or not.
   	volatile bool _childregistered;
@@ -69,6 +90,9 @@ private:
 	size_t _coreNumber;	
 	//how many do thread entries have in system. 
 	size_t _maxthreadentries;
+
+	size_t _condnum;
+	size_t _barriernum;
 	
  	// Variables related to token pass and fence control
   	volatile ThreadEntry *_tokenpos;
@@ -80,8 +104,8 @@ private:
   	volatile size_t _alivethreads;
 	
 	mydeterm():
-    //_condnum(0),
-    //_barriernum(0),
+    _condnum(0),
+    _barriernum(0),
     _maxthreads(0),
     _currthreads(0),
     //_is_arrival_phase(false),
@@ -137,7 +161,7 @@ public:
 		lock();
 		listInsertTail((list_t*)entry, _activeList);
 		unlock();
-		printf("registerThread entering, %d\n", threadindex);
+//		printf("registerThread entering, %d\n", threadindex);
 	}
 
 	void deleteRegisterThread(int threadindex){
@@ -145,7 +169,7 @@ public:
     	ThreadEntry * parent = &_entries[entry->tid_parent];
     	ThreadEntry * nextentry;			
 		
-		DEBUG("%d: Deregistering", getpid());
+//		DEBUG("%d: Deregistering", getpid());
 
 		lock();
 			
@@ -170,7 +194,7 @@ public:
 		freeThreadEntry(entry);
 		
 		//DEBUG("%d: deregistering. Token is passed to %d\n", getpid(), (ThreadEntry *)_tokenpos->threadindex);
-		DEBUG("%d: delete registering thread\n", getpid());	
+//		DEBUG("%d: delete registering thread\n", getpid());	
 		unlock();	
 		printf("Delete Registering thread, %d\n", threadindex);
 	}
@@ -229,7 +253,55 @@ public:
 		LockEntry *entry = (LockEntry *)getSyncEntry(mutex);
 		entry->is_acquired = false;
 	}
+	CondEntry * cond_init(void *cond){
+		CondEntry *entry = allocCondEntry();
+		_condnum ++;
+		entry->waiters = 0;
+		entry->head = NULL;
+		entry->cond = cond;
+		setSyncEntry(cond, entry);
+		WRAP(pthread_cond_init)(&entry->realcond, &_condattr);
+		return entry;
+	}
+	void cond_destroy(void * cond){
+		CondEntry *entry;
+		int offset;
+		
+		lock();
+		_condnum--;
+		entry = (CondEntry*)getSyncEntry(cond);
+		clearSyncEntry(cond);
+		freeSyncEntry(entry);	
+		unlock();
+	}
+	void barrier_init(void * bar, int count){
+		BarrierEntry * entry = allocBarrierEntry();
+		pthread_barrierattr_t attr;
+		
+		if (entry == NULL)
+			assert(0);
+		
+		entry->maxthreads = count;
+		entry->threads = 0;
+		entry->arrival_phase = true;
+		entry->orig_barr = bar;
+		entry->head = NULL;
+		
+		pthread_barrierattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
+		WRAP(pthread_barrier_init)(&entry->real_barr, &attr, count);
 
+		setSyncEntry(bar, entry);
+		
+		_barriernum ++;
+	}
+	void barrier_destroy(void *bar){
+		BarrierEntry * entry;
+		
+		entry = (BarrierEntry *)getSyncEntry(bar);
+		freeSyncEntry(entry);
+		clearSyncEntry(bar);
+		_barriernum--;
+	}
 	
 private:
 
@@ -257,9 +329,6 @@ private:
 	
 	void clearSyncEntry(void *originalEntry){
 		void **dest = (void**)originalEntry;
-	
-		////
-	
 	}
 	inline void * freeSyncEntry(void * ptr){
 		if(ptr != NULL){
@@ -272,13 +341,18 @@ private:
 	inline LockEntry *allocLockEntry(void){
 		return ((LockEntry *) allocSyncEntry(sizeof(LockEntry)));
 	}
-	
+	inline CondEntry *allocCondEntry(void){
+		return ((CondEntry*) allocSyncEntry(sizeof(CondEntry)));
+	}
+	inline BarrierEntry *allocBarrierEntry(void){
+		return ((BarrierEntry*) allocSyncEntry(sizeof(BarrierEntry)));
+	}	
   	inline void lock(void) {
-    	//WRAP(pthread_mutex_lock)(&_mutex);
+    	WRAP(pthread_mutex_lock)(&_mutex);
   	}
 
   	inline void unlock(void) {
-    	//WRAP(pthread_mutex_unlock)(&_mutex);
+    	WRAP(pthread_mutex_unlock)(&_mutex);
   	}
 };
 

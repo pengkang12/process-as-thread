@@ -47,7 +47,7 @@ public:
     	mydeterm::getInstance().notifyWaitingParent();
   	}
 	static inline int childRegister(int pid, int parentIndex){
-		printf("childRegistered\n");	
+//		printf("childRegistered\n");	
 		int threads;
 		//assign a global thread index for child thread.
 		_thread_index = atomic_increment_and_return(&global_data->thread_index);
@@ -64,6 +64,15 @@ public:
 	}
 	static inline void cancel(void *thread){
 	}	
+	
+	static inline void join(void *v, void ** result){
+		int child_threadindex = 0;
+		bool wakeupChildren = false;
+	
+		child_threadindex = mythread::getThreadIndex(v);
+		mythread::join(v, result);
+	
+	}
 	static inline int mutex_init(pthread_mutex_t *mutex){
 		mydeterm::getInstance().lock_init((void *)mutex);
 		return 0;
@@ -89,6 +98,33 @@ public:
 		return 0;
 	}
 	
+	static void cond_init(void *cond){
+		mydeterm::getInstance().cond_init(cond);
+	}
+	static void cond_destroy(void *cond){
+		mydeterm::getInstance().cond_destroy(cond);
+	}
+	static void cond_wait(void *cond, void *lock){
+
+	}
+
+	static void cond_broadcast(void *cond){
+	}
+	static void cond_signal(void *cond){
+	}
+
+	static int barrier_init(pthread_barrier_t *barrier, unsigned int count){
+		mydeterm::getInstance().barrier_init(barrier, count);
+	}
+	
+	static int barrier_destroy(pthread_barrier_t *barrier){
+		mydeterm::getInstance().barrier_destroy(barrier);	
+	}
+	
+	static int barrier_wait(pthread_barrier_t *barrier) {
+		
+	}
+
 	static void atomicBegin(bool cleanup){
 		fflush(stdout);
 		xmemory::begin(cleanup);	

@@ -27,10 +27,10 @@ public:
 		void* (*memcpy2)(void*, const void*, long unsigned int) = memcpy;	
 		
 		int j = 0;
-		for (int j=0; j<maplist.length ; j++){
+		for (j=0; j<maplist.length ; j++){
 				
 			void *tmpZone= MM::mmapAllocatePrivate(USER_HEAP_SIZE*2);
-			maplist.pmparser_print(j, 0);
+			//maplist.pmparser_print(j, 0);
 			int fd1 = -1;
 			{
 				if (j==2) continue;	

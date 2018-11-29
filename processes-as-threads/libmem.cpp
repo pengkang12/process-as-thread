@@ -21,7 +21,7 @@ extern "C" {
  
     xmemory::getInstance().initialize();
     initialized = true;
-	fprintf(stderr, "Now we have initialized successfuuly\n"); 
+	//fprintf(stderr, "Now we have initialized successfuuly\n"); 
   }
 
   void finalizer (void) {
