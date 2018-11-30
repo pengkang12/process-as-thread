@@ -6,8 +6,7 @@ INCLUDE_DIR = .
 
 #SRCS_IBS= $(SOURCE_DIR)/IBS/ibsop.c  
 SRCS_IBS= 
-SRCS =  $(SOURCE_DIR)/libmem.cpp \
-	$(SOURCE_DIR)/libfuncs.cpp         \
+SRCS = $(SOURCE_DIR)/libfuncs.cpp         \
 	$(SRCS_IBS) \
 	$(SOURCE_DIR)/libmythread.cpp \
 	$(SOURCE_DIR)/mythread.cpp \
@@ -22,7 +21,6 @@ INCS =  $(INCLUDE_DIR)/xdefines.h     \
 	$(INCLUDE_DIR)/xpheap.h \
 	$(INCLUDE_DIR)/privateheap.h \
 	$(INCLUDE_DIR)/mm.h \
-	$(INCLUDE_DIR)/libmythread.h \
  	$(INCLUDE_DIR)/mythread.h \
  	$(INCLUDE_DIR)/debug.h \
 	$(INCLUDE_DIR)/myrun.h \

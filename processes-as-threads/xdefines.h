@@ -57,8 +57,8 @@ extern "C"
   //extern bool initialized;
 
   enum { USER_HEAP_BASE     = 0x40000000 }; // 1G
-  //enum { USER_HEAP_SIZE = 1048576UL * 8192  * 8}; // 8G
-  enum { USER_HEAP_SIZE = 1048576UL * 8192  * 2}; // 8G
+  enum { USER_HEAP_SIZE = 1048576UL * 8192  * 8}; // 8G
+  //enum { USER_HEAP_SIZE = 1048576UL * 8192  * 2}; // 8G
   
   enum { MAX_USER_SPACE     = USER_HEAP_BASE + USER_HEAP_SIZE };
   enum { INTERNAL_HEAP_BASE = 0x100000000000 };

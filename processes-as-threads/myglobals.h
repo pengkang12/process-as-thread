@@ -33,7 +33,7 @@ public:
 			//maplist.pmparser_print(j, 0);
 			int fd1 = -1;
 			{
-				if (j==2) continue;	
+//				if (j==2) continue;	
 				if (maplist.map[j].length < USER_HEAP_SIZE)
 				{
 					memcpy2((void*)tmpZone, maplist.map[j].addr_start, maplist.map[j].length);
@@ -65,7 +65,7 @@ public:
 				maplist.map[j].addr_map = persistZone;
 				if (maplist.map[j].length < USER_HEAP_SIZE)
 				{
-					if(j !=0 || j!=2)
+//					if(j !=0 )
 						memcpy2(maplist.map[j].addr_start, tmpZone, maplist.map[j].length);
 				}
 			}

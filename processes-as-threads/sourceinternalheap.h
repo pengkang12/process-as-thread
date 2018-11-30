@@ -46,7 +46,7 @@ public:
     // Call mmap to allocate a shared map.
     ptr = MM::mmapAllocatePrivate(size+metasize, (void *)INTERNAL_HEAP_BASE);
     base = (char *)ptr;
-
+	printf("sourceinternalheap address is %lx\n", ptr);
     pthread_mutex_init(&_mutex, NULL);
 
 //		fprintf(stderr, "Internal malloc ptr %p\n", ptr);

@@ -55,7 +55,7 @@ public:
     sprintf(_backingFname, "HeapMXXXXXX");
 	int fd = mkstemp(_backingFname);
     //fprintf(stderr, "heap size %lx metasize %lx, startHeap %p\n", startsize, metasize, startHeap); 
-    ptr = MM::mmapAllocatePrivate(startsize+metasize, (void *)startHeap);
+    ptr = MM::mmapAllocateShared(startsize+metasize, (void *)startHeap);
     
 	// Initialize the lock.
     pthread_mutex_init(&_lock, NULL);
@@ -66,7 +66,7 @@ public:
     _position  = (char *)_start;
     _remaining = startsize;
     _magic     = 0xCAFEBABE;
-    fprintf(stderr, "XHEAP:ptr %p start %p end %p\n", ptr, _start, _end);
+    //fprintf(stderr, "XHEAP:ptr %p start %p end %p\n", ptr, _start, _end);
     return ptr;
     // PRDBG("XHEAP:_start at %p end at %p mutexlock %p\n", &_start, &_end, _lock);
   }

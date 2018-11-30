@@ -1,30 +1,107 @@
 #include <pthread.h>
 #include <syscall.h>
 #include <stdio.h>
-
+#include <stdlib.h>
+#include <dlfcn.h>
+#include <stdarg.h>
+#include "xmemory.h"
 #include "myrun.h"
 
-runtime_data_t * global_data;
-static bool initialized = false;
+extern "C" {
+  bool initialized = false;
+  unsigned long textStart, textEnd;
+  unsigned long globalStart, globalEnd;
+  unsigned long heapStart, heapEnd;
+	enum { InitialMallocSize = 1024 * 1024 * 1024 };
+}
 
-void finalize() __attribute__((destructor)); 
+runtime_data_t * global_data;
+
 __attribute__((constructor)) void initialize() {
 
 	init_real_functions();
 	
+    xmemory::getInstance().initialize();
+	
 	global_data = (runtime_data_t *)mmap(NULL, xdefines::PageSize, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+	printf("global_data address is %lx\n", global_data);
 	//parent thread index should be 1.
 	global_data->thread_index = 1;
 	myrun::initialize();
-	
 	initialized = true;
 	
-	//printf("this is my first time print\n");
+	void *ptr = (void *)malloc(100);	
+	printf("this is my first time print %lx \n", ptr);
 }
 
-void finalize(){
-	//printf("this is my end print\n");
+__attribute__((destructor))void finalize(){
+    initialized = false;
 }
+// Temporary mallocation before initlization has been finished.
+  static void * tempmalloc(int size) {
+    static char _buf[InitialMallocSize];
+    static int _allocated = 0;
+  
+    if(_allocated + size > InitialMallocSize) {
+      printf("Not enough space for tempmalloc");
+      abort();
+    } else {
+      void* p = (void*)&_buf[_allocated];
+      _allocated += size;
+      return p;
+    }
+  }
+
+  /// Functions related to memory management.
+   void * malloc (size_t sz) {
+    void * ptr;
+    if(sz == 0) {
+      sz = 1;
+    }
+
+    // Align the object size. FIXME for now, just use 16 byte alignment and min size.
+    if(!initialized) {
+      if (sz < 16) {
+        sz = 16;
+      }
+      sz = (sz + 15) & ~15;
+      ptr = tempmalloc(sz);
+    }
+    else {
+      ptr = xmemory::getInstance().malloc(sz);
+    }
+
+    if (ptr == NULL) {
+      fprintf (stderr, "Out of memory!\n");
+      ::abort();
+    }
+//    fprintf(stderr, "********MALLOC sz %ld ptr %p***********\n", sz, ptr);
+    return ptr;
+  }
+  
+  void * calloc (size_t nmemb, size_t sz) {
+    void * ptr;
+    
+    ptr = malloc (nmemb * sz);
+	  memset(ptr, 0, sz*nmemb);
+    return ptr;
+  }
+
+  void free (void * ptr) {
+    // We donot free any object if it is before 
+    // initializaton has been finished to simplify
+    // the logic of tempmalloc
+    if(initialized) {
+      xmemory::getInstance().free (ptr);
+    }
+  }
+
+  size_t malloc_usable_size(void * ptr) {
+    if(initialized) {
+      return xmemory::getInstance().malloc_usable_size(ptr);
+    }
+    return 0;
+  }
 
 int pthread_create (pthread_t * tid, const pthread_attr_t * attr, void *(*fn) (void *), void * arg) {
 	//assert(initialized);

@@ -359,11 +359,13 @@ private:
 	}
 	inline void * freeSyncEntry(void * ptr){
 		if(ptr != NULL){
-			InternalHeap::getInstance().free(ptr);		
+			xmemory::getInstance().free(ptr);
+			//InternalHeap::getInstance().free(ptr);		
 		}
 	}
 	inline void * allocSyncEntry(int size){
-		return InternalHeap::getInstance().malloc(size);
+		return malloc(size);
+		//return InternalHeap::getInstance().malloc(size);
 	}
 	inline LockEntry *allocLockEntry(void){
 		return ((LockEntry *) allocSyncEntry(sizeof(LockEntry)));
