@@ -75,3 +75,5 @@ public:
 	void checkandcommit(bool update){
 	}
 };
+
+#endif
