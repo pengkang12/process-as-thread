@@ -45,7 +45,6 @@
 #include "atomic.h"
 #include "xdefines.h"
 #include "ansiwrapper.h"
-//#include "internalheap.h"
 #include "mm.h"
 
 class xmemory {
@@ -55,6 +54,7 @@ private:
   	xmemory(){}
 
   	#define CALLSITE_SIZE sizeof(CallSite)
+
   	objectHeader * getObjectHeader (void * ptr) {
     	objectHeader * o = (objectHeader *) ptr;
     	return (o - 1);
@@ -62,8 +62,7 @@ private:
 
   	/// The protected heap used to satisfy big objects requirement. Less
   	/// than 256 bytes now.
-  	static xpheap<xoneheap<xheap> > _heap;		
-
+  	xpheap<xoneheap<xheap> > _heap;		
 public:
 	
 	// Just one accessor.  Why? We don't want more than one (singleton)
@@ -76,14 +75,10 @@ public:
 	}
 
 	void initialize() {
-		//installSignalHandler();
 		// Initialize the heap and globals. Basically, we need 
 		// spaces to hold access data for both heap and globals.
-
-		_globals.initialize();   
 		_heap.initialize(USER_HEAP_SIZE);
-		//InternalHeap::getInstance().initialize();
-		
+		_globals.initialize();   
 }
 
   void finalize(void) {

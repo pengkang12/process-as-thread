@@ -29,9 +29,6 @@ __attribute__((constructor)) void initialize() {
 	global_data->thread_index = 1;
 	myrun::initialize();
 	initialized = true;
-	
-	void *ptr = (void *)malloc(100);	
-	printf("this is my first time print %p\n", (void*)ptr);
 }
 
 __attribute__((destructor))void finalize(){

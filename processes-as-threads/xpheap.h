@@ -166,8 +166,8 @@ template <class SourceHeap>
 //, size_t Size>
 class xpheap : public SourceHeap 
 {
-  typedef PerThreadHeap<NUM_HEAPS, KingsleyStyleHeap<SourceHeap, xdefines::PHEAP_CHUNK> >
-  SuperHeap;
+  	typedef PerThreadHeap<NUM_HEAPS, KingsleyStyleHeap<SourceHeap, xdefines::PHEAP_CHUNK> >
+	SuperHeap;
 
 public: 
   xpheap() {

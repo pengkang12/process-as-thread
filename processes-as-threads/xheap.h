@@ -51,10 +51,6 @@ public:
     // We must initialize the heap now.
     void * startHeap = (void *)(USER_HEAP_BASE - metasize);
 
-	char _backingFname[L_tmpnam];
-    sprintf(_backingFname, "HeapMXXXXXX");
-	int fd = mkstemp(_backingFname);
-    //fprintf(stderr, "heap size %lx metasize %lx, startHeap %p\n", startsize, metasize, startHeap); 
     ptr = MM::mmapAllocateShared(startsize+metasize, (void *)startHeap);
     
 	// Initialize the lock.

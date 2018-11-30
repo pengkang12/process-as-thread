@@ -65,6 +65,8 @@ public:
 			if(fd1 != -1)
 					close(fd1);
 		}
+		if(fd !=-1)
+			close(fd);
 	}
 
 	void begin(bool cleanup){
