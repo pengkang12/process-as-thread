@@ -49,7 +49,7 @@
 
 class xmemory {
 private:
-	static xglobals _globals;
+	xglobals _globals;
   	// Private on purpose. See getInstance(), below.
   	xmemory(){}
 
@@ -78,7 +78,9 @@ public:
 		// Initialize the heap and globals. Basically, we need 
 		// spaces to hold access data for both heap and globals.
 		_heap.initialize(USER_HEAP_SIZE);
-		_globals.initialize();   
+		// I need to use once a malloc, otherwise I can't correct use heap. 
+		void *a = (void*) malloc(32);
+		_globals.initialize();  
 }
 
   void finalize(void) {

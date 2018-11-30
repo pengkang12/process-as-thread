@@ -42,12 +42,12 @@ public:
 				if (strlen(maplist.map[j].pathname)>0) // (strcmp(__FILE__, maplist.map[j].pathname) != 0))
 				{
 
-					fd1 = open2(maplist.map[j].pathname,  O_RDONLY);	
+					fd1 = open(maplist.map[j].pathname,  O_RDONLY);	
 					if(fd1 == -1) {
 						perror("open failed");
 						fprintf(stderr, "errno = %d, filepath = %s\n", errno, maplist.map[j].pathname);
 					}
-					persistZone = mmap2(maplist.map[j].addr_start, maplist.map[j].length,PROT_READ | PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS|MAP_FIXED, fd1, maplist.map[j].offset);
+					persistZone = mmap(maplist.map[j].addr_start, maplist.map[j].length,PROT_READ | PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS|MAP_FIXED, fd1, maplist.map[j].offset);
 				
 				}else{
 					//persistZone = MM::mmapAllocateShared(maplist.map[j].length, maplist.map[j].addr_start, fd, maplist.map[j].offset);
@@ -59,7 +59,7 @@ public:
  		     	}
 				
 				maplist.map[j].addr_map = persistZone;
-				memcpy2(maplist.map[j].addr_start, tmpZone, maplist.map[j].length);
+				memcpy(maplist.map[j].addr_start, tmpZone, maplist.map[j].length);
 			}
 			MM::mmapDeallocate(tmpZone, USER_HEAP_SIZE*2);
 			if(fd1 != -1)
@@ -75,5 +75,3 @@ public:
 	void checkandcommit(bool update){
 	}
 };
-
-#endif

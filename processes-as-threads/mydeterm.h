@@ -364,7 +364,7 @@ private:
 		}
 	}
 	inline void * allocSyncEntry(int size){
-		return malloc(size);
+		return xmemory::getInstance().malloc(size);
 		//return InternalHeap::getInstance().malloc(size);
 	}
 	inline LockEntry *allocLockEntry(void){

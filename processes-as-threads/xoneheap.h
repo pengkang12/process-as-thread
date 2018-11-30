@@ -39,13 +39,6 @@ public:
   }
   void * initialize(size_t size, size_t metasize) { return getHeap()->initialize(size, metasize); }
   void finalize (void * end) { getHeap()->finalize(end); }
-
-	void begin(bool cleanup){
-		getHeap()->begin(cleanup);
-	}
-	void checkandcommit(bool update){
-		getHeap()->checkandcommit(update);
-	}
 #if 0
   void cleanup() { getHeap()->cleanup(); }
 
@@ -64,7 +57,7 @@ public:
  
 
   void * malloc (size_t sz) { 
-//		fprintf(stderr, "xoneheap malloc sz %lx\n", sz);
+		printf("xoneheap malloc sz %lx\n", sz);
 	 	return getHeap()->malloc(sz); 
 	}
   void free (void * ptr) { getHeap()->free(ptr); }
@@ -74,7 +67,7 @@ private:
 
   SourceHeap * getHeap (void) {
     static char heapbuf[sizeof(SourceHeap)];
-    static SourceHeap * _heap = new (heapbuf) SourceHeap;
+    static SourceHeap * _heap = new (heapbuf) SourceHeap();
     //fprintf (stderr, "heap is in %p\n", _heap);
     return _heap;
   }

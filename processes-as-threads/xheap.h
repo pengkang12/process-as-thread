@@ -113,12 +113,6 @@ public:
     //printf("%d: XHEAP malloc: ptr %p end 0x%lx size %x\n", getpid(),  p, (intptr_t)p + sz,  sz);
     return p;
   }
-	void begin(bool cleanup){
-		sanityCheck();
-	}
-	void checkandcommit(bool update){
-		sanityCheck();
-	}
   // These should never be used.
   inline void free (void * ptr) { sanityCheck(); }
   inline size_t getSize (void * ptr) { sanityCheck(); return 0; } 
