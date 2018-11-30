@@ -24,14 +24,14 @@ __attribute__((constructor)) void initialize() {
     xmemory::getInstance().initialize();
 	
 	global_data = (runtime_data_t *)mmap(NULL, xdefines::PageSize, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-	printf("global_data address is %lx\n", global_data);
+	printf("global_data address is %p\n", (void *)global_data);
 	//parent thread index should be 1.
 	global_data->thread_index = 1;
 	myrun::initialize();
 	initialized = true;
 	
 	void *ptr = (void *)malloc(100);	
-	printf("this is my first time print %lx \n", ptr);
+	printf("this is my first time print %p\n", (void*)ptr);
 }
 
 __attribute__((destructor))void finalize(){

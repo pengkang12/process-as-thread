@@ -45,7 +45,7 @@
 #include "atomic.h"
 #include "xdefines.h"
 #include "ansiwrapper.h"
-#include "internalheap.h"
+//#include "internalheap.h"
 #include "mm.h"
 
 class xmemory {
