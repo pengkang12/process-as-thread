@@ -57,7 +57,6 @@ public:
  
 
   void * malloc (size_t sz) { 
-		printf("xoneheap malloc sz %lx\n", sz);
 	 	return getHeap()->malloc(sz); 
 	}
   void free (void * ptr) { getHeap()->free(ptr); }

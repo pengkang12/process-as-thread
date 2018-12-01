@@ -64,10 +64,9 @@ public:
 	
 	static inline void join(void *v, void ** result){
 		int child_threadindex = 0;
-		
 		child_threadindex = mythread::getThreadIndex(v);
 		//check child process has exited.
-		printf("we want to wait child, thread_index is %d\n", *(global_data->current_index));
+		//printf("we want to wait child, thread_index is %d\n", *(global_data->current_index));
 		mydeterm::getInstance().join(child_threadindex, *(global_data->current_index), true);
 	}
 

@@ -167,8 +167,8 @@ public:
 		//tell parent thread, I have finished.
 		//if(parent->status == STATUS_JOINING)
 	
-		printf("delete %d, %d, %d\n", parent->joinee_thread_index, threadindex, parent->status);	
-		if ( parent->joinee_thread_index == threadindex)
+		//printf("delete %d, %d, %d\n", parent->joinee_thread_index, threadindex, parent->status);	
+		//if ( parent->joinee_thread_index == threadindex)
 		{
 		
 			WRAP(pthread_cond_broadcast)(&_cond_join);
@@ -225,7 +225,7 @@ public:
 			myentry->status = STATUS_JOINING;
 			myentry->joinee_thread_index = guestindex;
 			
-			printf("parent joining child, %d, %d, %d\n", guestindex, myindex, myentry->status);	
+			//printf("parent joining child, %d, %d, %d\n", guestindex, myindex, myentry->status);	
 		}
 		if(joinee->status != STATUS_EXIT){
 		
