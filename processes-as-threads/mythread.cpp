@@ -79,10 +79,12 @@ void * mythread::forkSpawn(threadFunction *fn, ThreadStatus * t, void * arg, int
 		pid_t mypid = syscall(SYS_getpid);
     	setId(mypid);
 		
+		
 		//Store thread statue information
 		int threadindex = myrun::childRegister(mypid, parent_index);
     	t->threadIndex = threadindex;
     	t->tid = mypid;
+		global_data->thread_index = threadindex;
 		
 		myrun::waitParentNotify();
 

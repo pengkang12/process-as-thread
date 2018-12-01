@@ -9,8 +9,9 @@
 
 class xglobals {
 private:
+	int currentIndex;
 public:
-	xglobals(){}
+	xglobals():currentIndex(0){}
 	void initialize(){
 		class mapparser maplist;
 		maplist.pmparser_parse(-1);

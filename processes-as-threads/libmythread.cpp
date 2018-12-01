@@ -31,6 +31,8 @@ __attribute__((constructor)) void initialize() {
 	global_data->thread_index = 1;
 	myrun::initialize();
 	mydeterm::getInstance().initialize();
+	global_data->current_index = (int *)MM::mmapAllocatePrivate(xdefines::PageSize);
+	*(global_data->current_index) = 0;
 	initialized = true;
 }
 

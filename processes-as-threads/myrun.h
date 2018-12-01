@@ -16,7 +16,6 @@ private:
 	static size_t _thread_index;
 	// thread whether is initialized
 	static volatile bool _initialized;
-
   	//static volatile bool _protection_enabled;
   	//record main thread id.
 	static size_t _master_thread_id;
@@ -54,12 +53,11 @@ public:
 		_thread_index = atomic_increment_and_return(&global_data->thread_index);
 		_lock_count = 0;	
 		 
-		printf("childRegistered, index %d\n", _thread_index);	
 		mydeterm::getInstance().registerThread(_thread_index, pid, parentIndex);
 	}	
 	static inline void deleteChildRegister(void){
 		//printf("deleteChildRegistered information\n");
-    	mydeterm::getInstance().deleteRegisterThread(_thread_index);
+    	mydeterm::getInstance().deleteRegisterThread(*(global_data->current_index));
 	}
 	static inline void cancel(void *thread){
 	}	
@@ -68,7 +66,9 @@ public:
 		int child_threadindex = 0;
 		
 		child_threadindex = mythread::getThreadIndex(v);
-		mydeterm::getInstance().join(child_threadindex, _thread_index);
+		//check child process has exited.
+		printf("we want to wait child, thread_index is %d\n", *(global_data->current_index));
+		mydeterm::getInstance().join(child_threadindex, *(global_data->current_index), true);
 	}
 
 	static inline int mutex_init(pthread_mutex_t *mutex){

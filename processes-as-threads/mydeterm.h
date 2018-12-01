@@ -24,7 +24,7 @@ private:
  	// queue and putted into corresponding conditional variable queue.
   	class ThreadEntry {
   	public:
-    	inline ThreadEntry():prev(NULL), next(NULL), joinee_thread_index(-1) {}
+    	inline ThreadEntry():prev(NULL), next(NULL){}
 
     	inline ThreadEntry(int tid, int threadindex) {
       		this->tid = tid;
@@ -32,7 +32,6 @@ private:
       		this->wait = 0;
 			this->prev = NULL;
 			this->next = NULL;
-			this->joinee_thread_index = -1;
     	}	
 
     	list_t * prev;
@@ -165,6 +164,15 @@ public:
 		
 
 		lock();
+		//tell parent thread, I have finished.
+		//if(parent->status == STATUS_JOINING)
+	
+		printf("delete %d, %d, %d\n", parent->joinee_thread_index, threadindex, parent->status);	
+		if ( parent->joinee_thread_index == threadindex)
+		{
+		
+			WRAP(pthread_cond_broadcast)(&_cond_join);
+		}
 			
 		// Decrease number of alive threads and fence.
 	    if(_alivethreads > 0) {
@@ -173,11 +181,6 @@ public:
         	_alivethreads--;
            	//decrFence();
         }
-		if (entry->joinee_thread_index != -1){
-			ThreadEntry *joinee;
-			joinee = (ThreadEntry *)&_entries[entry->tid_parent];
-			joinee->wait -= 1;
-		}		
 		//activeList is NULL.
     	//nextentry = (ThreadEntry *)entry->next;
 		//assert(nextentry != entry);
@@ -199,8 +202,6 @@ public:
 		lock();
 		_childregistered = true;
 		WRAP(pthread_cond_signal)(&_cond_parent);
-		//WRAP(pthread_cond_wait)(&_cond_children, &_mutex);
-		//printf("child tell parent I finished register, %p\n", &_cond_parent);
 		unlock();
 	}
 
@@ -208,14 +209,29 @@ public:
 	void waitChildRegistered(void){
 		lock();
     	if (!_childregistered) {
-			//printf("parent wait child he is waiting child notificaiton\n");
       		WRAP(pthread_cond_wait)(&_cond_parent, &_mutex);
-    		//printf("finished notifaction\n");	
 		}
     	_childregistered = false;
     	unlock();		
 	}
-	inline bool join(int guestindex, int myindex){
+	inline bool join(int guestindex, int myindex, bool wakeup){
+		ThreadEntry *joinee;
+		ThreadEntry *myentry;
+		lock();
+		joinee = (ThreadEntry *)&_entries[guestindex];
+		myentry = (ThreadEntry *)&_entries[myindex];	
+		
+		if(joinee->status != STATUS_EXIT){
+			myentry->status = STATUS_JOINING;
+			myentry->joinee_thread_index = guestindex;
+			
+			printf("parent joining child, %d, %d, %d\n", guestindex, myindex, myentry->status);	
+		}
+		if(joinee->status != STATUS_EXIT){
+		
+			WRAP(pthread_cond_wait)(&_cond_join, &_mutex);	
+		}
+		unlock();
 		return true;
 	}		
 

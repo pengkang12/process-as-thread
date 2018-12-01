@@ -104,6 +104,7 @@ public:
 
 typedef struct runtime_data{
 	volatile unsigned long thread_index;
+	int *current_index;
 }runtime_data_t;
 
 extern runtime_data_t *global_data;
