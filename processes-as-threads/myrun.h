@@ -1,12 +1,14 @@
 #ifndef MYRUN_H_
 #define MYRUN_H_
 
+#include <pthread.h>
 #include <stdio.h>
 #include "xdefines.h"
 #include "atomic.h"
 #include "mythread.h"
 #include "mydeterm.h"
 #include "xmemory.h"
+#include "libfuncs.h"
 
 class myrun {
 private:
@@ -25,9 +27,16 @@ private:
   	//How much lock does the current thread have?
 	static size_t _lock_count;
   	//static bool _token_holding;		
-
+	static pthread_condattr_t _condattr;
+	static pthread_mutexattr_t _mutexattr;
 public: 
-	static inline void initialize(){}
+	static inline void initialize()
+	{
+		WRAP(pthread_mutexattr_init)(&_mutexattr);
+		pthread_mutexattr_setpshared(&_mutexattr, PTHREAD_PROCESS_SHARED);
+		WRAP(pthread_condattr_init)(&_condattr);
+		pthread_condattr_setpshared(&_condattr, PTHREAD_PROCESS_SHARED);
+	}
 	static inline void * spawn(threadFunction * fn, void * arg){
 		
 		
@@ -38,25 +47,15 @@ public:
 		
 		return ptr;
 	}
-	static inline int waitChildRegister(void){
-		printf("waitChildRegistered\n");	
-		mydeterm::getInstance().waitChildRegister();
-	}
-	// New created threads are waiting until notify by main thread.
-  	static void notifyWaitingParent(void) {
-    	mydeterm::getInstance().notifyWaitingParent();
-  	}
+	
 	static inline int childRegister(int pid, int parentIndex){
-//		printf("childRegistered\n");	
 		int threads;
 		//assign a global thread index for child thread.
 		_thread_index = atomic_increment_and_return(&global_data->thread_index);
 		_lock_count = 0;	
- 
+		 
+		printf("childRegistered, index %d\n", _thread_index);	
 		mydeterm::getInstance().registerThread(_thread_index, pid, parentIndex);
-		
-		
-
 	}	
 	static inline void deleteChildRegister(void){
 		//printf("deleteChildRegistered information\n");
@@ -67,75 +66,70 @@ public:
 	
 	static inline void join(void *v, void ** result){
 		int child_threadindex = 0;
-		bool wakeupChildren = false;
-	
+		
 		child_threadindex = mythread::getThreadIndex(v);
-		mythread::join(v, result);
-	
+		mydeterm::getInstance().join(child_threadindex, _thread_index);
 	}
+
 	static inline int mutex_init(pthread_mutex_t *mutex){
-		mydeterm::getInstance().lock_init((void *)mutex);
+		WRAP(pthread_mutex_init)(mutex, &_mutexattr);	
+		
+		//mydeterm::getInstance().lock_init((void *)mutex);
 		return 0;
 	}
 	
 	static inline void mutex_lock(pthread_mutex_t *mutex){
+		
 		_lock_count++;
-		bool getLock;
-		do{	
-			atomicBegin(true);
-			getLock = mydeterm::getInstance().lock_acquire(mutex);
-		}while(getLock == false);
+		WRAP(pthread_mutex_lock)(mutex);
 	}
 	
 	static inline void mutex_unlock(pthread_mutex_t *mutex){
 		_lock_count--;
-		mydeterm::getInstance().lock_release(mutex);
-		atomicEnd(false);
+		WRAP(pthread_mutex_unlock)(mutex);
 	}
 	
 	static inline int mutex_destroy(pthread_mutex_t *mutex){
-		mydeterm::getInstance().lock_destroy(mutex);	
+		WRAP(pthread_mutex_destroy)(mutex);
+		//mydeterm::getInstance().lock_destroy(mutex);	
 		return 0;
 	}
-	
-	static void cond_init(void *cond){
-		mydeterm::getInstance().cond_init(cond);
+	static void waitParentNotify(void) {
+    	mydeterm::getInstance().waitParentNotify();
+  	}
+
+  	static inline void waitChildRegistered(void) {
+   		mydeterm::getInstance().waitChildRegistered();
+  	}		
+	static void cond_init(pthread_cond_t *cond){
+		WRAP(pthread_cond_init)(cond, &_condattr);	
 	}
-	static void cond_destroy(void *cond){
-		mydeterm::getInstance().cond_destroy(cond);
+	static void cond_destroy(pthread_cond_t *cond){
+		WRAP(pthread_cond_destroy)(cond);	
 	}
-	static void cond_wait(void *cond, void *lock){
-		mydeterm::getInstance().cond_wait(_thread_index, cond, lock);
+	static void cond_wait(pthread_cond_t *cond, pthread_mutex_t *lock){
+		WRAP(pthread_cond_wait)(cond, lock);	
 	}
 
-	static void cond_broadcast(void *cond){
-		mydeterm::getInstance().cond_broadcast(cond);
+	static void cond_broadcast(pthread_cond_t *cond){
+		WRAP(pthread_cond_broadcast)(cond);	
 	}
-	static void cond_signal(void *cond){
-		mydeterm::getInstance().cond_signal(cond);
+	static void cond_signal(pthread_cond_t *cond){
+		WRAP(pthread_cond_signal)(cond);	
 	}
 
 	static int barrier_init(pthread_barrier_t *barrier, unsigned int count){
-		mydeterm::getInstance().barrier_init(barrier, count);
+		WRAP(pthread_barrier_init)(barrier, NULL, count);	
 	}
-	
+
 	static int barrier_destroy(pthread_barrier_t *barrier){
-		mydeterm::getInstance().barrier_destroy(barrier);	
+		WRAP(pthread_barrier_destroy)(barrier);	
 	}
 	
 	static int barrier_wait(pthread_barrier_t *barrier) {
-		mydeterm::getInstance().barrier_wait(barrier, _thread_index);
+		WRAP(pthread_barrier_destroy)(barrier);		
 	}
 
-	static void atomicBegin(bool cleanup){
-		fflush(stdout);
-		xmemory::begin(cleanup);	
-	}
-	static void atomicEnd(bool update){
-		fflush(stdout);
-		xmemory::commit(update);
-	}
-	
 };
 
 #endif

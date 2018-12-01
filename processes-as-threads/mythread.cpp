@@ -26,12 +26,35 @@ void * mythread::spawn(threadFunction *fn, void * arg, int parent_index){
 }
 	
 void mythread::join(void *threadId, void ** result){
+	ThreadStatus *t = (ThreadStatus *)threadId;
+	if(result != NULL)
+		*result = t->retval;
+	freeSharedObject(t, 4096);
+	return;
 }
 	
 int mythread::cancel(void *threadId){
+	ThreadStatus * t = (ThreadStatus *) threadId;
+
+  	int threadindex = t->threadIndex;
+
+  	kill(t->tid, SIGKILL);
+
+  	// Free the shared object held by this thread.
+  	freeSharedObject(t, 4096);
+  	return threadindex;
 }
 	
-int mythread::thread_kill(void *threadStatus, int signal){
+int mythread::thread_kill(void *threadId, int signal){
+	int threadindex;
+ 	ThreadStatus * t = (ThreadStatus *) threadId;
+
+  	threadindex = t->threadIndex;
+
+  	kill(t->tid, signal);
+  
+  	freeSharedObject(t, 4096);
+  	return threadindex;
 }
 	
 int mythread::getThreadIndex(void *threadStatus){
@@ -61,7 +84,7 @@ void * mythread::forkSpawn(threadFunction *fn, ThreadStatus * t, void * arg, int
     	t->threadIndex = threadindex;
     	t->tid = mypid;
 		
-		myrun::notifyWaitingParent();
+		myrun::waitParentNotify();
 
 		_nestingLevel ++;
 		run_thread(fn, t, arg);		
@@ -69,8 +92,9 @@ void * mythread::forkSpawn(threadFunction *fn, ThreadStatus * t, void * arg, int
 		
 		exit(0);	
 	}else{
-		//parent need to wait child
-		myrun::waitChildRegister();
+		//dthread:parent need to wait child
+		myrun::waitChildRegistered();
+		//Mythread: I didn't need to wait child. I continue to run. If I want to wait child. I need to wait at join() function.
 	}
 	//void * stackTop = allocateSharedObject(1024*1024*1024);	
 	//clone(fn, stackTop, CLONE_FS | CLONE_FILES | SIGCHLD, arg);

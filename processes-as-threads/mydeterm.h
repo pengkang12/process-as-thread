@@ -24,7 +24,7 @@ private:
  	// queue and putted into corresponding conditional variable queue.
   	class ThreadEntry {
   	public:
-    	inline ThreadEntry():prev(NULL), next(NULL) {}
+    	inline ThreadEntry():prev(NULL), next(NULL), joinee_thread_index(-1) {}
 
     	inline ThreadEntry(int tid, int threadindex) {
       		this->tid = tid;
@@ -32,6 +32,7 @@ private:
       		this->wait = 0;
 			this->prev = NULL;
 			this->next = NULL;
+			this->joinee_thread_index = -1;
     	}	
 
     	list_t * prev;
@@ -46,30 +47,6 @@ private:
     	int joinee_thread_index;
   	};
 	
-	class LockEntry {
-	public:
-		volatile int total_users;
-		volatile int last_thread;
-		volatile bool is_acquired;
-		volatile int lock_budget;
-	};
-	
-	class CondEntry{
-	public:
-		size_t waiters;
-		void *cond;
-		pthread_cond_t realcond;
-		list_t *head;
-	};
-	class BarrierEntry{
-	public:
-		volatile size_t maxthreads;
-		volatile size_t threads;
-		volatile bool arrival_phase;
-		void *orig_barr;
-		pthread_barrier_t real_barr;
-		list_t *head;
-	};
 	pthread_mutex_t _mutex;
 	pthread_cond_t cond;
 	pthread_condattr_t _condattr;
@@ -135,11 +112,13 @@ public:
 		WRAP(pthread_condattr_init)(&_condattr);
 		pthread_condattr_setpshared(&_condattr, PTHREAD_PROCESS_SHARED);	
 	
-		WRAP(pthread_mutex_init)(&_mutex, &_mutexattr);
+		WRAP(pthread_mutex_init)(&_mutex, &_mutexattr) ;
 		WRAP(pthread_cond_init)(&cond, &_condattr);
 		WRAP(pthread_cond_init)(&_cond_parent, &_condattr);
+	
 		WRAP(pthread_cond_init)(&_cond_children, &_condattr);
 		WRAP(pthread_cond_init)(&_cond_join, &_condattr);
+
 	}
 	
 	static mydeterm& getInstance(void) {
@@ -184,7 +163,6 @@ public:
     	ThreadEntry * parent = &_entries[entry->tid_parent];
     	ThreadEntry * nextentry;			
 		
-//		DEBUG("%d: Deregistering", getpid());
 
 		lock();
 			
@@ -195,7 +173,11 @@ public:
         	_alivethreads--;
            	//decrFence();
         }
-
+		if (entry->joinee_thread_index != -1){
+			ThreadEntry *joinee;
+			joinee = (ThreadEntry *)&_entries[entry->tid_parent];
+			joinee->wait -= 1;
+		}		
 		//activeList is NULL.
     	//nextentry = (ThreadEntry *)entry->next;
 		//assert(nextentry != entry);
@@ -206,135 +188,43 @@ public:
 			_activeList = NULL;
 		}else
 			listRemoveNode((list_t*)entry);
+		
 		freeThreadEntry(entry);
 		
-		//DEBUG("%d: deregistering. Token is passed to %d\n", getpid(), (ThreadEntry *)_tokenpos->threadindex);
-//		DEBUG("%d: delete registering thread\n", getpid());	
 		unlock();	
-		printf("Delete Registering thread, %d\n", threadindex);
 	}
-
+	
 	//notify parent thread, child thread has registered.
-	inline void notifyWaitingParent(void){
+	inline void waitParentNotify(void){
 		lock();
 		_childregistered = true;
-		//WRAP(pthread_cond_signal)(&_cond_parent);
+		WRAP(pthread_cond_signal)(&_cond_parent);
 		//WRAP(pthread_cond_wait)(&_cond_children, &_mutex);
+		//printf("child tell parent I finished register, %p\n", &_cond_parent);
 		unlock();
 	}
 
 	//parent thread is waiting until children thread registers.
-	void waitChildRegister(void){
+	void waitChildRegistered(void){
 		lock();
     	if (!_childregistered) {
-      		//WRAP(pthread_cond_wait)(&_cond_parent, &_mutex);
-      		if(!_childregistered) {
-        		fprintf(stderr, "Child should be registered!!!!\n");
-      		}
-    	}
+			//printf("parent wait child he is waiting child notificaiton\n");
+      		WRAP(pthread_cond_wait)(&_cond_parent, &_mutex);
+    		//printf("finished notifaction\n");	
+		}
     	_childregistered = false;
     	unlock();		
 	}
-	
-	LockEntry * lock_init(void* mutex){
-		LockEntry * entry = allocLockEntry();
-		entry->total_users = 0;
-		entry->last_thread = 0;
-		
-		entry->is_acquired = false;
-		
-		//No one is the owner, we need to syncEntry;
-		setSyncEntry(mutex, (void *)entry);
-	
-		return entry;
-	}
-	void lock_destroy(void * mutex){
-		LockEntry * entry = (LockEntry*)getSyncEntry(mutex);
-		setSyncEntry(mutex, NULL);
-		freeSyncEntry(entry);	
-	}
-	inline bool lock_acquire(void *mutex){
-		LockEntry *entry = (LockEntry *)getSyncEntry(mutex);
-		bool result = true;
-		if(entry == NULL){
-			entry = lock_init(mutex);
-		}
-		
-		if(entry->is_acquired == true)
-			return false;
-		entry->is_acquired = true;
-		return result;
-	}
-	void lock_release(void *mutex){
-		LockEntry *entry = (LockEntry *)getSyncEntry(mutex);
-		entry->is_acquired = false;
-	}
-	CondEntry * cond_init(void *cond){
-		CondEntry *entry = allocCondEntry();
-		_condnum ++;
-		entry->waiters = 0;
-		entry->head = NULL;
-		entry->cond = cond;
-		setSyncEntry(cond, entry);
-		WRAP(pthread_cond_init)(&entry->realcond, &_condattr);
-		return entry;
-	}
-	void cond_destroy(void * cond){
-		CondEntry *entry;
-		int offset;
-		
-		lock();
-		_condnum--;
-		entry = (CondEntry*)getSyncEntry(cond);
-		clearSyncEntry(cond);
-		freeSyncEntry(entry);	
-		unlock();
-	}
-	void barrier_init(void * bar, int count){
-		BarrierEntry * entry = allocBarrierEntry();
-		pthread_barrierattr_t attr;
-		
-		if (entry == NULL)
-			assert(0);
-		
-		entry->maxthreads = count;
-		entry->threads = 0;
-		entry->arrival_phase = true;
-		entry->orig_barr = bar;
-		entry->head = NULL;
-		
-		pthread_barrierattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
-		WRAP(pthread_barrier_init)(&entry->real_barr, &attr, count);
+	inline bool join(int guestindex, int myindex){
+		return true;
+	}		
 
-		setSyncEntry(bar, entry);
-		
-		_barriernum ++;
-	}
-	void barrier_destroy(void *bar){
-		BarrierEntry * entry;
-		
-		entry = (BarrierEntry *)getSyncEntry(bar);
-		freeSyncEntry(entry);
-		clearSyncEntry(bar);
-		_barriernum--;
-	}
-	
-	void barrier_wait(void *bar, int threadindex){
-	}
-
-	void cond_wait(int threadindex, void *cond, void *thelock){
-	}
-	
-	void cond_broadcast(void *cond){
-	}
-	
-	void cond_signal(void * cond){
-	}
 private:
 
 	//we can optimaze this. Create a pool to manage ThreadEntry.
 	inline void * allocThreadEntry(int threadindex) {
-		assert(threadindex < _maxthreadentries);
+		//printf("%d, %d\n", threadindex, _maxthreadentries);
+		//assert(threadindex < _maxthreadentries);
 		return (&_entries[threadindex]);
 	}
 
@@ -367,15 +257,7 @@ private:
 		return xmemory::getInstance().malloc(size);
 		//return InternalHeap::getInstance().malloc(size);
 	}
-	inline LockEntry *allocLockEntry(void){
-		return ((LockEntry *) allocSyncEntry(sizeof(LockEntry)));
-	}
-	inline CondEntry *allocCondEntry(void){
-		return ((CondEntry*) allocSyncEntry(sizeof(CondEntry)));
-	}
-	inline BarrierEntry *allocBarrierEntry(void){
-		return ((BarrierEntry*) allocSyncEntry(sizeof(BarrierEntry)));
-	}	
+	
   	inline void lock(void) {
     	WRAP(pthread_mutex_lock)(&_mutex);
   	}

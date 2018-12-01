@@ -29,6 +29,9 @@ extern int (*WRAP(pthread_mutex_lock))(pthread_mutex_t*);
 extern int (*WRAP(pthread_mutex_unlock))(pthread_mutex_t*);
 extern int (*WRAP(pthread_mutex_trylock))(pthread_mutex_t*);
 extern int (*WRAP(pthread_mutex_destroy))(pthread_mutex_t*);
+extern int (*WRAP(pthread_mutexattr_setpshared))(pthread_mutexattr_t *attr, int pshared);
+extern int (*WRAP(pthread_condattr_setpshared))(pthread_condattr_t *attr, int pshared);
+
 
 // pthread condition variables
 extern int (*WRAP(pthread_condattr_init))(pthread_condattr_t*);

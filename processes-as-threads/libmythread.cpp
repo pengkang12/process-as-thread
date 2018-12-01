@@ -6,6 +6,8 @@
 #include <stdarg.h>
 #include "xmemory.h"
 #include "myrun.h"
+#include "libfuncs.h"
+
 
 extern "C" {
   bool initialized = false;
@@ -28,6 +30,7 @@ __attribute__((constructor)) void initialize() {
 	//parent thread index should be 1.
 	global_data->thread_index = 1;
 	myrun::initialize();
+	mydeterm::getInstance().initialize();
 	initialized = true;
 }
 
@@ -164,6 +167,7 @@ int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *) {
 
 int pthread_mutex_lock(pthread_mutex_t *mutex) {
 	if(initialized) {
+		
 		myrun::mutex_lock(mutex);
 	}
 	return 0;
@@ -211,7 +215,7 @@ int pthread_attr_setstacksize(pthread_attr_t *, size_t) {
 int pthread_cond_init(pthread_cond_t * cond, const pthread_condattr_t *attr) {
 	//assert(initialized);
 	if(initialized) {
-		myrun::cond_init((void*) cond);
+		myrun::cond_init(cond);
 	}
 	return 0;
 }
@@ -219,7 +223,7 @@ int pthread_cond_init(pthread_cond_t * cond, const pthread_condattr_t *attr) {
 int pthread_cond_broadcast(pthread_cond_t * cond) {
 	//assert(initialized);
 	if(initialized) {
-		myrun::cond_broadcast((void*) cond);	
+		myrun::cond_broadcast(cond);	
 	}
 	return 0;
 }
@@ -227,7 +231,7 @@ int pthread_cond_broadcast(pthread_cond_t * cond) {
 int pthread_cond_signal(pthread_cond_t * cond) {
 	//assert(initialized);
 	if(initialized) {
-		myrun::cond_signal((void *)cond);
+		myrun::cond_signal(cond);
 	}
 	return 0;
 }
@@ -235,7 +239,7 @@ int pthread_cond_signal(pthread_cond_t * cond) {
 int pthread_cond_wait(pthread_cond_t * cond, pthread_mutex_t * mutex) {
 	//assert(initialized);
 	if(initialized) {
-		myrun::cond_wait((void *)cond, (void*)mutex);
+		myrun::cond_wait(cond, mutex);
 	}
 	return 0;
 }

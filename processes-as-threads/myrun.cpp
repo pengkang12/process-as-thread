@@ -10,4 +10,5 @@ volatile bool myrun::_initialized = false;
 size_t myrun::_children_threads_count = 0;
 size_t myrun::_lock_count = 0;
 //bool myrun::_token_holding;
-
+pthread_condattr_t myrun::_condattr;
+pthread_mutexattr_t myrun::_mutexattr;
