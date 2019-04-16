@@ -48,7 +48,7 @@ void * child_thread(void * data)
 		pthread_mutex_lock(&mutex[threadid]);
 		number = number + 1;
 		fprintf (stderr, "threadid:%d, number is %d\n", threadid, number);
-		printf("string is %s\n", string);
+//		printf("string is %s\n", string);
 		fflush (stderr);
 	
 		/* Do 1ms computation work. */
@@ -60,7 +60,6 @@ void * child_thread(void * data)
 		pthread_mutex_unlock(&mutex[threadid]);
 	}
 	number = number+1;
-	sleep(20);
 	return NULL;
 } 
 
@@ -78,15 +77,11 @@ int main(int argc,char**argv)
 	{
 		pthread_mutex_init(&mutex[i], NULL);
 	}
-	string = (char *)malloc(100*sizeof(char));	
-	strcpy(string, "fasfsdfa");
 	for(int i = 0; i < CORES; i++)
 		pthread_create (&threads[i], NULL, child_thread, (void *)i);
 	for(i = 0; i < CORES; i++) {
 		pthread_join (threads[i], NULL);
 	}
-	sleep(50);
-	free(string);
 	printf("number is %d, b is %lx, addr is %lx \n", number, &b);
 	
 	return 0;

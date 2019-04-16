@@ -17,7 +17,6 @@ void * thread_a(void * para)
 {
 	int i = 0;
 	srandom(time(0L));
-	printf("\nthread a\n");
 	while(i < 100)
 	{
 		i++;
@@ -43,7 +42,6 @@ void * thread_a(void * para)
 
 void * thread_b(void * para)
 {
-	printf("thread b\n");
 	int i = 0;
 	srandom(time(0L));
 	while(i < 100)

@@ -56,11 +56,11 @@ CFLAGS64 = $(CFLAGS) #-m64 # -O3
 
 #GET_CHARACTERISTICS
 
-TARGETS = libdthread.so
+TARGETS = libmythreads.so
 
 all: $(TARGETS)
 
-libdthread.so: $(DEPS)
+libmythreads.so: $(DEPS)
 	$(CXX) $(CFLAGS64) $(INCLUDE_DIRS) -shared -fPIC -D'CUSTOM_PREFIX(x)=mem_##x' $(SRCS) -o $@ -ldl -lpthread 
 
 clean:

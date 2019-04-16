@@ -1,0 +1,30 @@
+#!/bin/bash
+cd ~/project1/processes-as-threads/
+make clean 
+make
+
+cd ../test/
+make clean
+make
+
+./bug-atom
+
+./bug-atom-myt
+
+
+./bug-deadlock1
+
+./bug-deadlock1-myt
+./bug-deadlock
+./bug-deadlock-myt
+./bug-order
+./bug-order-myt
+./bug-race
+./bug-race-myt
+./lock-pthread
+
+./lock-dthread
+
+./bug-init
+./bug-init-myt
+make clean

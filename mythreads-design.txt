@@ -1,0 +1,110 @@
+1. Design description
+
+1) Degree of completion:
+    Part1: I intercept functions of pthread_create(), pthread_join(), pthread_exit(). I didn't finish pthread_cancel. I haven't 
+        enough time to implement it perfectly.
+    
+    Part2: I completed all processes sharing globals(library and threads) and heap. I didn't finish this part that the stack
+        can be shared by all processes. This part is very hard to understand. I spent a lot of time to understand and debug this
+        part. However, this part is very beneficial and the most valuable part in this project. I learned a lot. Thanks, Sam. 
+        Sam showed me how to debug program efficiently.  
+
+    Part3: I reencapsulate the function of synchronizations, include mutexes, conditional variables, and barriers.
+    
+    Part4: performace measuring. 
+
+        I use dthread's test case to test my library. No segment fault. The program can be running correctly. 
+        Libmythreads.so is slower than pthread library, especially when the number of processes is greater than the 
+        number of cores. Sorry, I didnit submit the figure to prove my conclusion. 
+
+2) Implementation:
+    Part1: I use the funcition of syscall(SYS_clone, ...) to implement thread creation. If I use clone(...), I only 
+        can create a new process so that the system can't control the thread. This is a trick. I refered the implementation
+        from Dthread. Thanks Dthread. 
+
+    Part2: I didn't use selfmap to help me read maps file. I refered it and rewrite a class to read maps file because I 
+        want to put everything in stack when I am initializing. I need to use malloc function before I call mmap to set 
+        this area shared by all processes. This part, I met a lot of interesting error. BUSY error, access memory error,
+        function can't be referenced. In this part, before I mmap the area to share, I must munmap the area. If I want to 
+        open file, I need to use open(..., RDONLY) because some library or executed file can't be open by Read and Write.
+        To mmap function, we need to use option MAP_SHARED and MAP_ANANOYMOUS. And I must be very careful to avoid use libraries
+        and global value. Otherwise, we will meet some bus-busy-error or memory-access-error.
+    
+    Part3: I use Part3's function to control thread's creation and join and internal shared memory access. 
+
+2. Conclusion.
+    This is a very good and inspiring project. We can learn a lot. To my implementation, there are a lot of work that still need
+    me to do. I need to considered how to compare the performance, run my program faster, and verify my implementation, etc. 
+
+3. Program Running. 
+    My program can be compiled by make command. I use the script named "run-my-test-case" to compile, link and run my test case.
+    I compared the difference between pthread and libmythreads.so.
+
+    The result is:
+
+peng@utsasrg2:~/project1/test$ ./bug-deadlock
+2 is finished
+5 is finished
+1 is finished
+4 is finished
+3 is finished
+
+peng@utsasrg2:~/project1/test$ ./bug-deadlock-myt
+finished phtread wrapped
+4 is finished
+peng@utsasrg2:~/project1/test$ 5 is finished
+2 is finished
+3 is finished
+1 is finished
+
+peng@utsasrg2:~/project1/test$ ./bug-deadlock1
+
+THREADB A:588500, B:5940
+
+THREADA A:606560, B:6000
+
+peng@utsasrg2:~/project1/test$ ./bug-deadlock1-myt
+finished phtread wrapped
+
+THREADA A:600030, B:5960
+
+THREADB A:606020, B:6000
+
+peng@utsasrg2:~/project1/test$ ./bug-atom
+no violation found!
+peng@utsasrg2:~/project1/test$ ./bug-atom-myt
+finished phtread wrapped
+no violation found!
+peng@utsasrg2:~/project1/test$ ./bug-init
+0x1727c20
+peng@utsasrg2:~/project1/test$ ./bug-init-myt
+finished phtread wrapped
+0x40000058
+peng@utsasrg2:~/project1/test$ ./bug-order
+atomicity violation in multivariable detected.
+peng@utsasrg2:~/project1/test$ ./bug-order-myt
+finished phtread wrapped
+No violation found!
+peng@utsasrg2:~/project1/test$ ./bug-race
+52 0 56 0 60 0 64 0 68 0 72 0 76 0 80 0 84 0 88 0 92 0 96 0 100 0 104 0 108 0 112 0 116 0 120 0 124 0 128 0 132 0 136 0 140 0 144 0 148 0
+peng@utsasrg2:~/project1/test$ ./bug-race-myt
+finished phtread wrapped
+2 5 0 9 0 13 0 17 0 21 0 25 0 77 80 0 84 37 0 41 0 45 0 49 0 53 0 57 0 61 0 65 0 69 0 73 0 77 0 81 0 85 0 89 0 93 0 97 0
+peng@utsasrg2:~/project1/test$ ./lock-mythread
+finished phtread wrapped
+threadid:0, number is 12
+threadid:1, number is 14
+threadid:0, number is 15
+threadid:1, number is 16
+threadid:0, number is 17
+threadid:1, number is 18
+number is 19, b is 400e50, addr is 7f865bbd74da
+peng@utsasrg2:~/project1/test$ ./lock-pthread
+threadid:0, number is 12
+threadid:1, number is 14
+threadid:1, number is 15
+threadid:0, number is 16
+threadid:1, number is 17
+threadid:0, number is 18
+number is 20, b is 400b90, addr is 7f7f59e03260
+peng@utsasrg2:~/project1/test$
